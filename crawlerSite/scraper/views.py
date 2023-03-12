@@ -16,9 +16,9 @@ class ScraperView(APIView):
         url = request.data.get('url')
         if url:
             response = Scraper(url)
-            return Response({'response': response})
+            return Response({'data': response})
         else:
-            return Response({'error': 'Missing URL parameter'})
+            return Response({"sucess" : False, 'error': 'Missing URL parameter'})
 
     def get(self, request):
         return Response({'message': 'This endpoint requires a POST request'})
