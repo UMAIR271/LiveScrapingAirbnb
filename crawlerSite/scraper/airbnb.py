@@ -5,26 +5,11 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
-import csv
 import time
-import mysql.connector
 import datetime
 from datetime import datetime
 from bs4 import BeautifulSoup
 
-
-
-# mydb = mysql.connector.connect(
-#   host="127.0.0.1",
-#   user="airbnb",
-#   passwd="airbnb@airbnb",
-#   database="airbnb"
-# )  
-
-# mycursor = mydb.cursor()
-# mycursor.execute('SET NAMES utf8mb4')
-# mycursor.execute("SET CHARACTER SET utf8mb4")
-# mycursor.execute("SET character_set_connection=utf8mb4")
 
 def Scraper(url):
     try:
