@@ -6,6 +6,8 @@ from rest_framework.response import Response
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 
+#this is django rest api 
+#this view file
 
 class ScraperView(APIView):
     @method_decorator(csrf_exempt)

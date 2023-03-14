@@ -49,3 +49,14 @@ from django.test import TestCase
 
     # driver.execute_script("window.scrollBy(0, 200)")
     # time.sleep(10)
+
+# def write_cvs(data):
+#         header = ['Title', 'Rating', 'Reviews','Bedroom', 'Amenities','Cleanliness','Accuracy', 'Communication','Location','Check-in','Value']
+#         f_name = 'airbnb.csv'
+#         with open(f_name,    'w') as data_file:
+#             writer = csv.writer(data_file)
+#             writer.writerow(header)
+#             for row in data:
+#                 writer.writerow(row)
+#             data_file.close()
+#         return True
