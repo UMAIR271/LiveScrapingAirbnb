@@ -16,7 +16,7 @@ import time
 import datetime
 from datetime import datetime
 from bs4 import BeautifulSoup
-
+import re
 import requests
 import mysql.connector
 import os
@@ -37,7 +37,7 @@ from selenium.webdriver.chrome.service import Service
 import re
 
 
-def Scraper(url):
+def crawler(url):
 
     print("enter")
     print(url)
@@ -72,9 +72,10 @@ def Scraper(url):
 
     # Property ID
     try:
-        final_property_id = url.split("/rooms/")[1].split("?")[0] 
-        if final_property_id:
-            scraped_data["property_id"] = final_property_id 
+        match = re.search(r'\d+', url)
+        final_property_id = url.split("/www.vrbo.com/")[1].split("?")[0] 
+        if match:
+            scraped_data["property_id"] = int(match.group()) 
             print("# Property ID",final_property_id)
         else:
             scraped_data["property_id"] = 'null' 
@@ -115,53 +116,73 @@ def Scraper(url):
     #locations
     try:
         print("location _try")
-        locations = driver.find_element(By.CSS_SELECTOR, "div._9ns6hl")
+        locations = driver.find_element(By.CSS_SELECTOR, "div.Description--location")
         locations_data=locations.text
         print(locations.text)
-        city, state, country = locations_data.split(", ")
+        words= locations_data.split(", ")
             
         #city
-        scraped_data["city"] = city
-        print("City:", city)
+        if len(words)>=4:
 
-        #property_state
-        scraped_data["property_state"] = state
-        print("State:", state)
+            scraped_data["city"] = words[0]
+            print("City:", words[0])
 
-        #country
-        scraped_data["country"] = country
-        print("Country:", country)
-        print(locations.text)
+            #property_state
+            scraped_data["property_state"] = words[1]
+            print("State:", words[1])
+
+            #country
+            scraped_data["country"] = words[2]
+            print("Country:", words[2])
+            print(locations.text)
+        else:
+            scraped_data["hotel"] = words[0]
+            print("hotel:", words[0])
+
+            scraped_data["city"] = words[1]
+            print("City:", words[1])
+
+            #property_state
+            scraped_data["property_state"] = words[2]
+            print("State:", words[2])
+
+            #country
+            scraped_data["country"] = words[3]
+            print("Country:", words[3])
+            print(locations.text)
+
+        
     except:
         print("location _ezcept")
         time.sleep(10)
-        driver.execute_script("window.scrollBy(0, 700)")
-        locations = driver.find_element(By.CSS_SELECTOR, "div._152qbzi")
-        locations_data=locations.text
-        print(locations.text)
-        city, state, country = locations_data.split(", ")
+        # driver.execute_script("window.scrollBy(0, 700)")
+        # locations = driver.find_element(By.CSS_SELECTOR, "div._152qbzi")
+        # locations_data=locations.text
+        # print(locations.text)
+        # city, state, country = locations_data.split(", ")
             
         #city
-        scraped_data["city"] = city
-        print("City:", city)
+
+        scraped_data["city"] = "null"
 
         #property_state
-        scraped_data["property_state"] = state
-        print("State:", state)
+        scraped_data["property_state"] = "null"
 
         #country
-        scraped_data["country"] = country
-        print("Country:", country)
-        print(locations.text)
+        scraped_data["country"] = "null"
+
 
     #building_type
     try:
-        building_type = driver.find_element(By.CSS_SELECTOR, "div._1n81at5")
+        building_type = driver.find_element(By.CSS_SELECTOR, "div.property-headline")
+        print(building_type, "building_type")
         if len(building_type.text) > 0:
             scraped_data["building_type"]=building_type.text
         else:
+            print("hello")
             scraped_data["building_type"]= "null"
     except:
+        print("hello43")
         scraped_data["building_type"]= "null"
     time.sleep(3)
 
@@ -174,7 +195,7 @@ def Scraper(url):
     
     print("============Title=======================")
     try:
-        title = driver.find_element(By.CSS_SELECTOR, "div._cv5qq4")
+        title = driver.find_element(By.CSS_SELECTOR, "div.property-headline")
         if len(title.text) > 0:
             scraped_data["property_title"]=title.text
         else:
@@ -200,36 +221,62 @@ def Scraper(url):
     print("============bed guest etc=======================")
     try:
         try:
-            guests = driver.find_element(By.CSS_SELECTOR,'div._tqmy57 li:nth-child(1) span:nth-child(1)').text
-            guests = int(guests.split()[0])
-            scraped_data["guests"] = guests
-            print('Guests:', guests)
+            li_elements = driver.find_elements(By.CSS_SELECTOR,".four-pack > li")
+            # house_type = ""
+            bedrooms = ""
+            beds = ""
+            sleeps = ""
+            bathrooms = ""
+            baths = ""
+            # kitchen = False
+            # patio = False
+
+            # Loop through the li elements and extract the data
+            for li in li_elements:
+                print("hello")
+                text = li.text
+                print(text,"loop iteration!\n\n")
+                if "House" in text:
+                    pass
+                try:
+                    if "bedrooms" in text or "bedroom" in text:
+                        bedrooms = text
+                        bedrooms = int(bedrooms.split()[0])
+                        scraped_data["bedrooms"] = bedrooms
+                        try:
+                            beds = li.find_element(By.CSS_SELECTOR, ".four-pack__detail-item:nth-of-type(1)").text
+                            beds = int(beds.split()[0])
+                            scraped_data["beds"] = beds
+                        except:
+                            scraped_data["beds"] = "null"
+                        try:
+                            print("enter the sleep\n\n")
+                            sleeps = li.find_element(By.CSS_SELECTOR, ".four-pack__detail-item:nth-of-type(2)").text
+                            sleeps = int(sleeps.split()[0])
+                            scraped_data["sleeps"] = sleeps
+                        except:
+                            scraped_data["sleeps"] = "null"
+                except:
+                    scraped_data["bedrooms"] = "null"
+                try:
+                    print("enter the bathroom==================================\n\n")
+                    if "bathrooms" in text or "bathroom" in text:
+                        print("bathrooms\n\n",text)
+                        bathrooms = text
+                        bath_number = int(bathrooms.split()[0])
+                        print(bath_number, "==bath==\n\n")
+                        scraped_data["bathrooms"] = bath_number
+                    else:
+                        scraped_data["baths"] = "null"
+                except:
+                    scraped_data["bathrooms"] = "null"
+            print("Bedrooms:", bedrooms)
+            print("Beds:", beds)
+            print("Sleeps:", sleeps)
+            print("Bathrooms:", bathrooms)
+
         except:
             scraped_data["guests"] = "null"
-
-        try:
-            bedrooms = driver.find_element(By.CSS_SELECTOR,'div._tqmy57 li:nth-child(2) span:nth-child(2)').text
-            bedrooms = int(bedrooms.split()[0])
-            scraped_data["bedrooms"] = bedrooms
-            print('Bedrooms:', bedrooms)
-        except:
-            scraped_data["bedrooms"] = "null"
-        
-        try:
-            beds = driver.find_element(By.CSS_SELECTOR,'div._tqmy57 li:nth-child(3) span:nth-child(2)').text
-            beds = int(beds.split()[0])
-            scraped_data["beds"] = beds
-            print('Beds:', beds)
-        except:
-            scraped_data["beds"] = "null"
-        
-        try:
-            baths = driver.find_element(By.CSS_SELECTOR,'div._tqmy57 li:nth-child(4) span:nth-child(2)').text
-            baths = int(baths.split()[0])
-            scraped_data["baths"] = baths
-            print('Baths:', baths)
-        except:
-            scraped_data["baths"] = "null"
     except:
             scraped_data["guests"] = "null"
             scraped_data["bedrooms"] = "null"
@@ -240,7 +287,8 @@ def Scraper(url):
 
     #night_rate
     try:
-        scraped_data["night_rate"] = "null"     
+        night_rate=driver.find_element(By.CSS_SELECTOR,"span.rental-price__amount").text
+        scraped_data["night_rate"] = night_rate   
         
     except:
         scraped_data["night_rate"] = "null"
@@ -250,7 +298,15 @@ def Scraper(url):
         cleaning_fee = driver.find_element(By.CSS_SELECTOR, "div._18x0pkv")
         print(cleaning_fee)
     except:
-        print("not found")
+        scraped_data["cleaning_fee"] = "null"
+
+    #service
+    try:
+        cleaning_fee = driver.find_element(By.CSS_SELECTOR, "div._18x0pkv")
+        print(cleaning_fee)
+    except:
+        scraped_data["service_fee"] = "null"
+
 
     # currency   
 
@@ -258,7 +314,7 @@ def Scraper(url):
 
     #image_links
     try:
-        image_links = driver.find_elements(By.CSS_SELECTOR,'img._6tbg2q')
+        image_links = driver.find_elements(By.CSS_SELECTOR,'img.photo-grid__photo')
         if len(image_links) > 0:
             all_image_links = []
             for link in image_links:
@@ -281,7 +337,7 @@ def Scraper(url):
         scraped_data["single_room"] = "null" 
 
     #source
-    scraped_data["source"] = "airbnb"
+    scraped_data["source"] = "vrbo"
     scraped_data["status"] = "1"
     time.sleep(10)
     print(scraped_data)

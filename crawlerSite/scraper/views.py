@@ -1,6 +1,7 @@
 from django.http import HttpResponse
 from django.shortcuts import render
 from scraper.airbnb import Scraper
+from scraper.verbo import crawler
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.utils.decorators import method_decorator
@@ -16,11 +17,18 @@ class ScraperView(APIView):
 
     def post(self, request):
         url = request.data.get('url')
-        if url:
+        
+
+        if "airbnb" in url:
             response = Scraper(url)
             return Response({'data': response})
+        elif "vrbo" in url:
+            response = crawler(url)
+            return Response({'data': response})
+            
         else:
             return Response({"sucess" : False, 'error': 'Missing URL parameter'})
+
 
     def get(self, request):
         return Response({'message': 'This endpoint requires a POST request'})
