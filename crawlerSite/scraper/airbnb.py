@@ -16,17 +16,6 @@ import time
 import datetime
 from datetime import datetime
 from bs4 import BeautifulSoup
-
-import requests
-import mysql.connector
-import os
-import json
-
-import random
-import time
-from datetime import datetime
-from bs4 import BeautifulSoup
-
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC

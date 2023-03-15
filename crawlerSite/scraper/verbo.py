@@ -12,21 +12,11 @@ Created on Tue Mar 14 21:10:09 2023
 # from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.keys import Keys
 # from selenium.webdriver.support import expected_conditions as EC
-import time
 import datetime
-from datetime import datetime
-from bs4 import BeautifulSoup
 import re
-import requests
-import mysql.connector
-import os
-import json
-
-import random
 import time
 from datetime import datetime
 from bs4 import BeautifulSoup
-
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -34,7 +24,7 @@ from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.service import Service
-import re
+
 
 
 def crawler(url):
