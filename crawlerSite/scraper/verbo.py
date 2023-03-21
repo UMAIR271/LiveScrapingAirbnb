@@ -69,9 +69,9 @@ def crawler(url):
             print("# Property ID",final_property_id)
         else:
             scraped_data["property_id"] = 'null' 
-         except:
+    except:
         scraped_data["property_id"] = 'null' 
-   print("# Property ID",final_property_id)
+        print("# Property ID",final_property_id)
 
 
     # today date
