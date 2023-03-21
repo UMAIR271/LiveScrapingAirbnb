@@ -33,7 +33,7 @@ def crawler(url):
     print(url)
 
     options = webdriver.ChromeOptions()
-    options.add_argument('headless')
+    options.add_argument('--headless')
     options.add_argument("--no-sandbox")
     options.add_argument('--disable-dev-shm-usage')
 #    driver = webdriver.Chrome(service=Service(executable_path=r"chromedriver"), options = options)
@@ -69,9 +69,9 @@ def crawler(url):
             print("# Property ID",final_property_id)
         else:
             scraped_data["property_id"] = 'null' 
-            print("# Property ID",final_property_id)
-    except:
+         except:
         scraped_data["property_id"] = 'null' 
+   print("# Property ID",final_property_id)
 
 
     # today date
