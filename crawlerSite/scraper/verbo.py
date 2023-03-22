@@ -24,6 +24,25 @@ from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.service import Service
+import mysql.connector
+import json
+
+try:
+    mydb = mysql.connector.connect(
+      host="127.0.0.1",
+      user="root",
+      passwd="",
+      database="sony_airbnb"
+    )  
+except:
+       
+    mydb = mysql.connector.connect(
+      host="127.0.0.1",
+      user="airbnb",
+      passwd="airbnb@airbnb",
+      database="airbnb"
+    )  
+
 
 
 

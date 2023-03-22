@@ -5,25 +5,40 @@ Created on Tue Mar 14 21:10:09 2023
 @author: mehed
 """
 
-# from selenium import webdriver
-# # from selenium.webdriver.chrome.options import Options
-# from selenium.webdriver.common.by import By
-# from selenium.webdriver.common.by import By
-# from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.keys import Keys
-# from selenium.webdriver.support import expected_conditions as EC
 import time
 import datetime
+import json
 from datetime import datetime
-from bs4 import BeautifulSoup
 from selenium import webdriver
+import mysql.connector
 from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
-from selenium.common.exceptions import TimeoutException
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.service import Service
-import re
+
+try:
+    mydb = mysql.connector.connect(
+      host="127.0.0.1",
+      user="root",
+      passwd="",
+      database="airbnb"
+    )  
+except:
+       
+    mydb = mysql.connector.connect(
+      host="127.0.0.1",
+      user="airbnb",
+      passwd="airbnb@airbnb",
+      database="airbnb"
+    )  
+
+
+mycursor = mydb.cursor()
+mycursor.execute('SET NAMES utf8mb4')
+mycursor.execute("SET CHARACTER SET utf8mb4")
+mycursor.execute("SET character_set_connection=utf8mb4")
+
 
 
 def Scraper(url):
@@ -37,9 +52,6 @@ def Scraper(url):
     options.add_argument('--disable-dev-shm-usage')
 #    driver = webdriver.Chrome(service=Service(executable_path=r"chromedriver"), options = options)
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options = options)
-    
-    # link = "https://www.airbnb.com/rooms/36343724?category_tag=Tag%3A8225&check_in=2022-12-10&check_out=2022-12-11&previous_page_section_name=1000"
-    
     driver.get(url)
     delay = 15 # seconds until timeout
     
@@ -49,16 +61,8 @@ def Scraper(url):
     # Instantiate the Chrome webdriver
     scraped_data = {}
 
-    # Navigate to the target website
-    
-
-    # myElem = WebDriverWait(driver, delay).until(EC.presence_of_element_located((By.CSS_SELECTOR, "div.l1li2ovm dir dir-ltr")))
-    
+    # Navigate to the target website 
     wait = WebDriverWait(driver, delay)
-    # print(wait, "Page is ready!\n\n")
-    #get html source code
-
-
     # Property ID
     try:
         final_property_id = url.split("/rooms/")[1].split("?")[0] 
@@ -72,120 +76,47 @@ def Scraper(url):
         scraped_data["property_id"] = 'null' 
 
 
-    # today date
-    try:
-        today = datetime.now().date()
-        if today:
-            scraped_data["scrap_date"] = today 
-            print(today)
-        else:
-            scraped_data["scrap_date"] = "null" 
-            print(today)
-    except:
-        scraped_data["scrap_date"] = "null" 
-
-    # current time  
-    try:
-        current_time = datetime.now().strftime("%H:%M:%S")
-        if current_time:
-            scraped_data["current_time"] = current_time 
-            print("# current time",current_time)
-        else:
-            scraped_data["current_time"] = "null" 
-            print("# current time",current_time)
-    except:
-        scraped_data["current_time"] = "null" 
-        print("# current time",current_time)
-    
-    time.sleep(10)
+    #today date
+    today = datetime.now().date()
+    scraped_data = {"scrap_date": today, "current_time": datetime.now().strftime("%H:%M:%S")}
     body = driver.find_element(By.TAG_NAME,'body')
     body.send_keys(Keys.PAGE_DOWN)
-
+    time.sleep(15)
     #locations
     try:
-        print("location _try")
         locations = driver.find_element(By.CSS_SELECTOR, "div._9ns6hl")
-        locations_data=locations.text
-        print(locations.text)
-        city, state, country = locations_data.split(", ")
-            
-        #city
-        scraped_data["city"] = city
-        print("City:", city)
-
-        #property_state
-        scraped_data["property_state"] = state
-        print("State:", state)
-
-        #country
-        scraped_data["country"] = country
-        print("Country:", country)
-        print(locations.text)
     except:
-        print("location _ezcept")
-        time.sleep(10)
-        driver.execute_script("window.scrollBy(0, 700)")
         locations = driver.find_element(By.CSS_SELECTOR, "div._152qbzi")
-        locations_data=locations.text
-        print(locations.text)
-        city, state, country = locations_data.split(", ")
-            
-        #city
-        scraped_data["city"] = city
-        print("City:", city)
+    city, state, country = locations.text.split(", ")
+    scraped_data["city"] = city
+    scraped_data["property_state"] = state
+    scraped_data["country"] = country
 
-        #property_state
-        scraped_data["property_state"] = state
-        print("State:", state)
+    building_type = driver.find_elements(By.CSS_SELECTOR, "div._1n81at5")
+    if building_type:
+        scraped_data["building_type"] = building_type[0].text
+    else:
+        scraped_data["building_type"] = "null"
 
-        #country
-        scraped_data["country"] = country
-        print("Country:", country)
-        print(locations.text)
+    # post code
+    scraped_data["post_code"] = "null"
 
-    #building_type
-    try:
-        building_type = driver.find_element(By.CSS_SELECTOR, "div._1n81at5")
-        if len(building_type.text) > 0:
-            scraped_data["building_type"]=building_type.text
-        else:
-            scraped_data["building_type"]= "null"
-    except:
-        scraped_data["building_type"]= "null"
-    time.sleep(3)
+    # title
+    title = driver.find_elements(By.CSS_SELECTOR, "div._cv5qq4")
+    if title:
+        final_title = title[0].text
+        scraped_data["property_title"] = title[0].text
+    else:
+        scraped_data["property_title"] = "null"
 
-    #post_code
-    try:
-        scraped_data["post_code"]="null"
-    except:
-        scraped_data["post_code"]= "null"
-    time.sleep(3)
-    
-    print("============Title=======================")
-    try:
-        title = driver.find_element(By.CSS_SELECTOR, "div._cv5qq4")
-        if len(title.text) > 0:
-            scraped_data["property_title"]=title.text
-        else:
-            scraped_data["property_title"]= "null"
-    except:
-        scraped_data["property_title"]= "null"
-    time.sleep(10)
-    body = driver.find_element(By.TAG_NAME,'body')
+    # scroll up
     body.send_keys(Keys.PAGE_UP)
 
-    #sub_title
-    try:
-        scraped_data["sub_title"]="null"
-    except:
-        scraped_data["sub_title"]= "null"
+    # sub title
+    scraped_data["sub_title"] = "null"
 
-    #description
-    try:
-        scraped_data["description"]="null"
-    except:
-        scraped_data["description"]= "null"
-
+    # description
+    scraped_data["description"] = "null"
     print("============bed guest etc=======================")
     try:
         try:
@@ -269,14 +200,34 @@ def Scraper(url):
     except:
         scraped_data["single_room"] = "null" 
 
+    final_property_type = "null"
     #source
     scraped_data["source"] = "airbnb"
     scraped_data["status"] = "1"
-    time.sleep(10)
+    mycursor.execute("SELECT property_id FROM rooms WHERE property_id = '" + final_property_id + "' AND  scrap_date = '" + str(today) + "'")
+    myresult3 = mycursor.fetchall()      
+    existingRowCount3 = len(myresult3)
+    print("Total Duplicate Found: " + str(existingRowCount3))
+    if existingRowCount3 >= 1:
+        print("Exists")
+        pass
+    
+    else: 
+        print("Ready for insert")
+        
+        allow_country = ["United States of America", "United States", "Canada"]
+            
+        if country in allow_country:
+            sql2 = "INSERT INTO  rooms (property_id, scrap_date, scrap_time, building_type, city, property_state, country, property_title, guest, beds, bedrooms, bathrooms, night_rate, cleaning_fee, property_photos, single_room) VALUES (%s, %s, %s, %s,%s, %s, %s,%s, %s, %s,%s, %s, %s,%s, %s, %s)"
+            val2 = (final_property_id, today, datetime.now().strftime("%H:%M:%S"), final_property_type, city, state, country, final_title, guests, beds, bedrooms, baths, "", "", json.dumps(all_image_links), url)
+            mycursor.execute(sql2, val2)
+            mydb.commit()
+
+            print("\nInsert successfully\n")
     print(scraped_data)
+    mydb.close()
     driver.quit()
     return scraped_data
 
 
-# Scraper("https://www.airbnb.ca/rooms/676499889269811829?adults=1&category_tag=Tag%3A8662&children=0&infants=0&search_mode=flex_destinations_search&check_in=2023-01-20&check_out=2023-01-25&federated_search_id=ec4bcd8f-5449-44d8-ae9f-c1e7762ffd5a&source_impression_id=p3_1678806666_si7KMqChQusbS90x")
-    # write_cvs(scraped_data)
+# Scraper("https://www.airbnb.com/rooms/755137040389728919?adults=1&category_tag=Tag%3A8102&children=0&infants=0&pets=0&check_in=2023-04-15&check_out=2023-04-20&federated_search_id=d120bd08-ed2b-4c79-8e1f-3fcc665546eb&source_impression_id=p3_1679502419_EarSIHPCIlX%2FRFLf")
