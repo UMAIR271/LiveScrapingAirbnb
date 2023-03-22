@@ -5,13 +5,8 @@ Created on Tue Mar 14 21:10:09 2023
 @author: mehed
 """
 
-# from selenium import webdriver
-# # from selenium.webdriver.chrome.options import Options
-# from selenium.webdriver.common.by import By
-# from selenium.webdriver.common.by import By
-# from selenium.webdriver.support.ui import WebDriverWait
+
 from selenium.webdriver.common.keys import Keys
-# from selenium.webdriver.support import expected_conditions as EC
 import datetime
 import re
 import time
@@ -44,6 +39,13 @@ except:
     )  
 
 
+mycursor = mydb.cursor()
+mycursor.execute('SET NAMES utf8mb4')
+mycursor.execute("SET CHARACTER SET utf8mb4")
+mycursor.execute("SET character_set_connection=utf8mb4")
+
+
+
 
 
 def crawler(url):
@@ -55,30 +57,14 @@ def crawler(url):
     options.add_argument('--headless')
     options.add_argument("--no-sandbox")
     options.add_argument('--disable-dev-shm-usage')
-#    driver = webdriver.Chrome(service=Service(executable_path=r"chromedriver"), options = options)
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options = options)
     
-    # link = "https://www.airbnb.com/rooms/36343724?category_tag=Tag%3A8225&check_in=2022-12-10&check_out=2022-12-11&previous_page_section_name=1000"
+   
     
     driver.get(url)
     delay = 15 # seconds until timeout
-    
-    # driver = webdriver.Chrome()
-
-
-    # Instantiate the Chrome webdriver
     scraped_data = {}
-
-    # Navigate to the target website
-    
-
-    # myElem = WebDriverWait(driver, delay).until(EC.presence_of_element_located((By.CSS_SELECTOR, "div.l1li2ovm dir dir-ltr")))
-    
     wait = WebDriverWait(driver, delay)
-    # print(wait, "Page is ready!\n\n")
-    #get html source code
-
-
     # Property ID
     try:
         match = re.search(r'\d+', url)
@@ -132,15 +118,17 @@ def crawler(url):
             
         #city
         if len(words)>=4:
-
+            city = words[0]
             scraped_data["city"] = words[0]
             print("City:", words[0])
 
             #property_state
+            state = words[1]
             scraped_data["property_state"] = words[1]
             print("State:", words[1])
 
             #country
+            country = words[2]
             scraped_data["country"] = words[2]
             print("Country:", words[2])
             print(locations.text)
@@ -148,14 +136,17 @@ def crawler(url):
             scraped_data["hotel"] = words[0]
             print("hotel:", words[0])
 
+            city = words[1]
             scraped_data["city"] = words[1]
             print("City:", words[1])
 
             #property_state
+            state = words[1]
             scraped_data["property_state"] = words[2]
             print("State:", words[2])
 
             #country
+            country = words[3]
             scraped_data["country"] = words[3]
             print("Country:", words[3])
             print(locations.text)
@@ -164,23 +155,11 @@ def crawler(url):
     except:
         print("location _ezcept")
         time.sleep(10)
-        # driver.execute_script("window.scrollBy(0, 700)")
-        # locations = driver.find_element(By.CSS_SELECTOR, "div._152qbzi")
-        # locations_data=locations.text
-        # print(locations.text)
-        # city, state, country = locations_data.split(", ")
-            
-        #city
-
         scraped_data["city"] = "null"
-
         #property_state
         scraped_data["property_state"] = "null"
-
         #country
         scraped_data["country"] = "null"
-
-
     #building_type
     try:
         building_type = driver.find_element(By.CSS_SELECTOR, "div.property-headline")
@@ -207,6 +186,7 @@ def crawler(url):
         title = driver.find_element(By.CSS_SELECTOR, "div.property-headline")
         if len(title.text) > 0:
             scraped_data["property_title"]=title.text
+            final_title = title.text
         else:
             scraped_data["property_title"]= "null"
     except:
@@ -283,6 +263,7 @@ def crawler(url):
             print("Beds:", beds)
             print("Sleeps:", sleeps)
             print("Bathrooms:", bathrooms)
+            guests = "null"
 
         except:
             scraped_data["guests"] = "null"
@@ -348,11 +329,12 @@ def crawler(url):
     #source
     scraped_data["source"] = "vrbo"
     scraped_data["status"] = "1"
+    sql2 = "INSERT INTO  rooms (property_id, scrap_date, scrap_time, building_type, city, property_state, country, property_title, guest, beds, bedrooms, bathrooms, night_rate, cleaning_fee, property_photos, single_room) VALUES (%s, %s, %s, %s,%s, %s, %s,%s, %s, %s,%s, %s, %s,%s, %s, %s)"
+    val2 = (final_property_id, today, datetime.now().strftime("%H:%M:%S"), building_type, city, state, country, final_title, guests, beds, bedrooms, baths, "", "", json.dumps(all_image_links), url)
+    mycursor.execute(sql2, val2)
+    mydb.commit()
+    print("\nInsert successfully\n")
     time.sleep(10)
     print(scraped_data)
     driver.quit()
     return scraped_data
-
-
-# Scraper("https://www.airbnb.ca/rooms/676499889269811829?adults=1&category_tag=Tag%3A8662&children=0&infants=0&search_mode=flex_destinations_search&check_in=2023-01-20&check_out=2023-01-25&federated_search_id=ec4bcd8f-5449-44d8-ae9f-c1e7762ffd5a&source_impression_id=p3_1678806666_si7KMqChQusbS90x")
-    # write_cvs(scraped_data)
