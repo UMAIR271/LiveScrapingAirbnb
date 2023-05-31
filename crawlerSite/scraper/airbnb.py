@@ -84,13 +84,14 @@ def Scraper(url):
     time.sleep(15)
     #locations
     try:
-        locations = driver.find_element(By.CSS_SELECTOR, "div._9ns6hl")
+        locations = driver.find_element(By.CSS_SELECTOR, "span._9xiloll")
     except:
         locations = driver.find_element(By.CSS_SELECTOR, "div._152qbzi")
     city, state, country = locations.text.split(", ")
     scraped_data["city"] = city
     scraped_data["property_state"] = state
     scraped_data["country"] = country
+    all_image_links=[]
 
     building_type = driver.find_elements(By.CSS_SELECTOR, "div._1n81at5")
     if building_type:
@@ -180,7 +181,7 @@ def Scraper(url):
     try:
         image_links = driver.find_elements(By.CSS_SELECTOR,'img._6tbg2q')
         if len(image_links) > 0:
-            all_image_links = []
+            
             for link in image_links:
                 all_image_links.append(link.get_attribute('src'))
                 print(link.get_attribute('src'))
