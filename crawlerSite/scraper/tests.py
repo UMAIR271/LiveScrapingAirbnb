@@ -1,62 +1,31 @@
-from django.test import TestCase
+import mysql.connector
 
-# Create your tests here.
-# print("============Reviews=======================")
-    # try:
-    #     reviews_result = driver.find_elements(By.CSS_SELECTOR, "span._y10azs")
-    #     for i in reviews_result:
-    #         reviews_text = i.find_element(By.CSS_SELECTOR, "span._1jlwy4xq").text
-    #         if len(reviews_text) > 0:
-    #             scraped_data["reviews"]=reviews_text
-    #             print("reviews",reviews_text)
-    #         else:
-    #             scraped_data["reviews"]="null"
-    # except:
-    #     scraped_data["reviews"]="null"
+# Replace these placeholders with your RDS instance details
+db_host = '34.23.87.242'
+db_port = '3306'
+db_name = 'cleanster-logs'
+db_user = 'airbnb_root'
+db_password = '7BQ+NLokL<L,x@+r'
 
-    # time.sleep(10)
-    # print("============all user reviews=======================")
-    # try:
-    #     all_user_review = driver.find_elements(By.CSS_SELECTOR, "div._162hp8xh")
-    #     print(all_user_review,"all_user_reviews")
-    #     for i in all_user_review:
-    #         user_name = i.find_element(By.CSS_SELECTOR, "h3._14i3z6h").text
-    #         print(user_name,"user_name")
-    #         user_reviews = i.find_element(By.CSS_SELECTOR, "span.ll4r2nl").text
-    #         print(user_reviews,"user_reviews")
+try:
+    print("Connecting to")
+    conn = mysql.connector.connect(
+        user=db_user,
+        password=db_password,
+        host=db_host,
+        port=db_port,
+        database=db_name
+    )
+    print(conn)
+    if conn.is_connected():
+        print("Connected to the database!")
 
-    #         if len(reviews_text) > 0:
-    #             scraped_data[f"user_name {user_name}"]=user_name
-    #             scraped_data[f"{user_name}"]=user_reviews
-    #             print("reviews",scraped_data[f"{user_name}"])
-    #         else:
-    #             print("reviews error")
-    # except:
-    #         scraped_data[f"user_name {user_name}"]="null"
-    #         scraped_data[f"{user_name}"]='null'
-    # time.sleep(10)
-    # print("============Where will you sleep=======================")
-    # try:
-    #     Bedroom = driver.find_element(By.CSS_SELECTOR, "div._1a5glfg").text
-    #     Bedroom_data = []
-    #     if len(Bedroom) > 0:
-    #         scraped_data["Bedroom"]=Bedroom
-    #     else:
-    #         scraped_data["Bedroom"]="null"
-    # except:
-    #     scraped_data["Bedroom"]="null"
+        # Now you can execute SQL queries using this connection
+        # ...
 
-
-    # driver.execute_script("window.scrollBy(0, 200)")
-    # time.sleep(10)
-
-# def write_cvs(data):
-#         header = ['Title', 'Rating', 'Reviews','Bedroom', 'Amenities','Cleanliness','Accuracy', 'Communication','Location','Check-in','Value']
-#         f_name = 'airbnb.csv'
-#         with open(f_name,    'w') as data_file:
-#             writer = csv.writer(data_file)
-#             writer.writerow(header)
-#             for row in data:
-#                 writer.writerow(row)
-#             data_file.close()
-#         return True
+except mysql.connector.Error as e:
+    print("Error connecting to the database:", e)
+finally:
+    if conn.is_connected():
+        conn.close()
+        print("Connection closed.")

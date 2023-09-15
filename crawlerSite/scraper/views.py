@@ -17,15 +17,12 @@ class ScraperView(APIView):
 
     def post(self, request):
         url = request.data.get('url')
-        
-
         if "airbnb" in url:
             response = Scraper(url)
             return Response({'data': response})
         elif "vrbo" in url:
             response = crawler(url)
             return Response({'data': response})
-            
         else:
             return Response({"sucess" : False, 'error': 'Missing URL parameter'})
 
