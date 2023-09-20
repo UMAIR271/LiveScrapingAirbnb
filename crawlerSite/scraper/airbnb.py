@@ -8,63 +8,77 @@ Created on Tue Mar 14 21:10:09 2023
 from selenium.webdriver.common.keys import Keys
 import time
 import datetime
+from selenium.webdriver.chrome.options import Options
 import json
 from datetime import datetime
 from selenium import webdriver
 import mysql.connector
-from selenium.webdriver.support.ui import WebDriverWait
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service as ChromeService
 from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
-from selenium.webdriver.chrome.service import Service
+from seleniumwire import webdriver as wiredriver
+
 from .helper import *
-db_host = '34.23.87.242'
-db_port = '3306'
-db_name = 'cleanster-logs'
-db_user = 'airbnb_root'
-db_password = '7BQ+NLokL<L,x@+r'
+# db_host = '34.23.87.242'
+# db_port = '3306'
+# db_name = 'cleanster-logs'
+# db_user = 'airbnb_root'
+# db_password = '7BQ+NLokL<L,x@+r'
 
-try:
-    mydb = mysql.connector.connect(
-        user = db_user,
-        password=db_password,
-        host= db_host,
-        port = db_port,
-        database=db_name
-    )  
-except:
+# try:
+#     mydb = mysql.connector.connect(
+#         user = db_user,
+#         password=db_password,
+#         host= db_host,
+#         port = db_port,
+#         database=db_name
+#     )  
+# except:
        
-    mydb = mysql.connector.connect(
-      host="127.0.0.1",
-      user="airbnb",
-      passwd="airbnb@airbnb",
-      database="airbnb"
-    )  
+#     mydb = mysql.connector.connect(
+#       host="127.0.0.1",
+#       user="airbnb",
+#       passwd="airbnb@airbnb",
+#       database="airbnb"
+#     )  
 
 
-mycursor = mydb.cursor()
-mycursor.execute('SET NAMES utf8mb4')
-mycursor.execute("SET CHARACTER SET utf8mb4")
-mycursor.execute("SET character_set_connection=utf8mb4")
+# mycursor = mydb.cursor()
+# mycursor.execute('SET NAMES utf8mb4')
+# mycursor.execute("SET CHARACTER SET utf8mb4")
+# mycursor.execute("SET character_set_connection=utf8mb4")
 
 
 
 def Scraper(url):
     print("proxy_username",proxy_username)
     print("proxy_password",proxy_password)
-    options = webdriver.ChromeOptions()
-    proxy_auth = f"{proxy_username}:{proxy_password}"
-    options.add_argument(f'--proxy-auth={proxy_auth}')
-    options.add_argument('headless')
-    options.add_argument("--no-sandbox")
-    options.add_argument('--disable-dev-shm-usage')
+    chrome_options = Options()
+    chrome_options.add_argument('--headless')
+    chrome_options.add_argument('--disable-gpu')  # Disable GPU acceleration in headless mode
+
+    # Set proxy settings
+    
     max_retry_count = 3  # Maximum number of retries
     retry_count = 0
 
     while retry_count < max_retry_count:
         proxy = get_random_proxy()
         print(f"Using proxy: {proxy}")
+        proxy_options = {
+        'proxy': {
+            'https': f'https://yhboqpqa:vwxtikz2tphj@{proxy}'
+        }
+    }
         try:
-            driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options = options)
+            driver = wiredriver.Chrome(
+            service=ChromeService(ChromeDriverManager().install()),
+            seleniumwire_options=proxy_options,
+            options=chrome_options
+            )
+            print(driver)
             driver.get(url)
             delay = 30 # seconds until timeout
             
@@ -270,23 +284,23 @@ def Scraper(url):
             scraped_data["status"] = "1"
 
 
-            mycursor.execute("SELECT property_id FROM rooms WHERE property_id = '" + final_property_id + "' AND  scrap_date = '" + str(today) + "'")
-            myresult3 = mycursor.fetchall()      
-            existingRowCount3 = len(myresult3)
-            print(myresult3)
-            print("Total Duplicate Found: " + str(existingRowCount3))
-            if existingRowCount3 >= 1:
-                print("Allready Exists")
-                pass
+            # mycursor.execute("SELECT property_id FROM rooms WHERE property_id = '" + final_property_id + "' AND  scrap_date = '" + str(today) + "'")
+            # myresult3 = mycursor.fetchall()      
+            # existingRowCount3 = len(myresult3)
+            # print(myresult3)
+            # print("Total Duplicate Found: " + str(existingRowCount3))
+            # if existingRowCount3 >= 1:
+            #     print("Allready Exists")
+            #     pass
             
-            else: 
-                sql2 = "INSERT INTO  rooms (property_id, scrap_date, scrap_time, building_type, city, property_state, country, property_title, guest, beds, bedrooms, bathrooms, night_rate, cleaning_fee, property_photos, single_room) VALUES (%s, %s, %s, %s,%s, %s, %s,%s, %s, %s,%s, %s, %s,%s, %s, %s)"
-                val2 = (final_property_id, today, datetime.now().strftime("%H:%M:%S"), final_property_type, city, state, country, final_title, guests, beds, bedrooms, baths, "", "", json.dumps(all_image_links), url)
-                mycursor.execute(sql2, val2)
-                mydb.commit()
-                print("\nInsert successfully\n")
+            # else: 
+            #     sql2 = "INSERT INTO  rooms (property_id, scrap_date, scrap_time, building_type, city, property_state, country, property_title, guest, beds, bedrooms, bathrooms, night_rate, cleaning_fee, property_photos, single_room) VALUES (%s, %s, %s, %s,%s, %s, %s,%s, %s, %s,%s, %s, %s,%s, %s, %s)"
+            #     val2 = (final_property_id, today, datetime.now().strftime("%H:%M:%S"), final_property_type, city, state, country, final_title, guests, beds, bedrooms, baths, "", "", json.dumps(all_image_links), url)
+            #     mycursor.execute(sql2, val2)
+            #     mydb.commit()
+                # print("\nInsert successfully\n")
             print(scraped_data)
-            mydb.close()
+            # mydb.close()
             driver.quit()
             return scraped_data
         except Exception as e:
