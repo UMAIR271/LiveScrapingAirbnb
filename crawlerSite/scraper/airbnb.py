@@ -21,34 +21,34 @@ from webdriver_manager.chrome import ChromeDriverManager
 from seleniumwire import webdriver as wiredriver
 
 from .helper import *
-# db_host = '34.23.87.242'
-# db_port = '3306'
-# db_name = 'cleanster-logs'
-# db_user = 'airbnb_root'
-# db_password = '7BQ+NLokL<L,x@+r'
+db_host = '34.23.87.242'
+db_port = '3306'
+db_name = 'cleanster-logs'
+db_user = 'airbnb_root'
+db_password = '7BQ+NLokL<L,x@+r'
 
-# try:
-#     mydb = mysql.connector.connect(
-#         user = db_user,
-#         password=db_password,
-#         host= db_host,
-#         port = db_port,
-#         database=db_name
-#     )  
-# except:
+try:
+    mydb = mysql.connector.connect(
+        user = db_user,
+        password=db_password,
+        host= db_host,
+        port = db_port,
+        database=db_name
+    )  
+except:
        
-#     mydb = mysql.connector.connect(
-#       host="127.0.0.1",
-#       user="airbnb",
-#       passwd="airbnb@airbnb",
-#       database="airbnb"
-#     )  
+    mydb = mysql.connector.connect(
+      host="127.0.0.1",
+      user="airbnb",
+      passwd="airbnb@airbnb",
+      database="airbnb"
+    )  
 
 
-# mycursor = mydb.cursor()
-# mycursor.execute('SET NAMES utf8mb4')
-# mycursor.execute("SET CHARACTER SET utf8mb4")
-# mycursor.execute("SET character_set_connection=utf8mb4")
+mycursor = mydb.cursor()
+mycursor.execute('SET NAMES utf8mb4')
+mycursor.execute("SET CHARACTER SET utf8mb4")
+mycursor.execute("SET character_set_connection=utf8mb4")
 
 
 
@@ -56,8 +56,15 @@ def Scraper(url):
     print("proxy_username",proxy_username)
     print("proxy_password",proxy_password)
     chrome_options = Options()
-    chrome_options.add_argument('--headless')
-    chrome_options.add_argument('--disable-gpu')  # Disable GPU acceleration in headless mode
+
+    chrome_options.add_argument("--no-sandbox") 
+    chrome_options.add_argument("--disable-setuid-sandbox") 
+    chrome_options.add_argument("--remote-debugging	-port=9222")  # this
+    chrome_options.add_argument("--disable-dev-shm-using") 
+    chrome_options.add_argument("--disable-extensions") 
+    chrome_options.add_argument("--disable-gpu") 
+    chrome_options.add_argument("start-maximized") 
+    chrome_options.add_argument("disable-infobars")
 
     # Set proxy settings
     
@@ -284,23 +291,23 @@ def Scraper(url):
             scraped_data["status"] = "1"
 
 
-            # mycursor.execute("SELECT property_id FROM rooms WHERE property_id = '" + final_property_id + "' AND  scrap_date = '" + str(today) + "'")
-            # myresult3 = mycursor.fetchall()      
-            # existingRowCount3 = len(myresult3)
-            # print(myresult3)
-            # print("Total Duplicate Found: " + str(existingRowCount3))
-            # if existingRowCount3 >= 1:
-            #     print("Allready Exists")
-            #     pass
+            mycursor.execute("SELECT property_id FROM rooms WHERE property_id = '" + final_property_id + "' AND  scrap_date = '" + str(today) + "'")
+            myresult3 = mycursor.fetchall()      
+            existingRowCount3 = len(myresult3)
+            print(myresult3)
+            print("Total Duplicate Found: " + str(existingRowCount3))
+            if existingRowCount3 >= 1:
+                print("Allready Exists")
+                pass
             
-            # else: 
-            #     sql2 = "INSERT INTO  rooms (property_id, scrap_date, scrap_time, building_type, city, property_state, country, property_title, guest, beds, bedrooms, bathrooms, night_rate, cleaning_fee, property_photos, single_room) VALUES (%s, %s, %s, %s,%s, %s, %s,%s, %s, %s,%s, %s, %s,%s, %s, %s)"
-            #     val2 = (final_property_id, today, datetime.now().strftime("%H:%M:%S"), final_property_type, city, state, country, final_title, guests, beds, bedrooms, baths, "", "", json.dumps(all_image_links), url)
-            #     mycursor.execute(sql2, val2)
-            #     mydb.commit()
-                # print("\nInsert successfully\n")
+            else: 
+                sql2 = "INSERT INTO  rooms (property_id, scrap_date, scrap_time, building_type, city, property_state, country, property_title, guest, beds, bedrooms, bathrooms, night_rate, cleaning_fee, property_photos, single_room) VALUES (%s, %s, %s, %s,%s, %s, %s,%s, %s, %s,%s, %s, %s,%s, %s, %s)"
+                val2 = (final_property_id, today, datetime.now().strftime("%H:%M:%S"), final_property_type, city, state, country, final_title, guests, beds, bedrooms, baths, "", "", json.dumps(all_image_links), url)
+                mycursor.execute(sql2, val2)
+                mydb.commit()
+                print("\nInsert successfully\n")
             print(scraped_data)
-            # mydb.close()
+            mydb.close()
             driver.quit()
             return scraped_data
         except Exception as e:
