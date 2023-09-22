@@ -176,6 +176,7 @@ def Scraper(url):
             scraped_data["post_code"] = "null"
 
             # title
+            property_title = "null"
             class_name_to_check_property_title = ['_1xxgv6l','_8lgpy8']
             for class_name in class_name_to_check_property_title:
                 try:
@@ -183,6 +184,8 @@ def Scraper(url):
                     title = driver.find_elements(By.CSS_SELECTOR, f"div.{class_name}")
                     if title:
                         scraped_data["property_title"] = title[0].text
+                        property_title=title[0].text
+
                 except:
                         scraped_data["property_title"] = "null"
 
@@ -291,7 +294,7 @@ def Scraper(url):
             scraped_data["status"] = "1"
 
 
-            mycursor.execute("SELECT property_id FROM rooms WHERE property_id = '" + final_property_id + "' AND  scrap_date = '" + str(today) + "'")
+            mycursor.execute("SELECT property_id FROM tbl_airbnb_pricing WHERE property_id = '" + final_property_id + "' AND  scrap_date = '" + str(today) + "'")
             myresult3 = mycursor.fetchall()      
             existingRowCount3 = len(myresult3)
             print(myresult3)
@@ -301,8 +304,8 @@ def Scraper(url):
                 pass
             
             else: 
-                sql2 = "INSERT INTO  rooms (property_id, scrap_date, scrap_time, building_type, city, property_state, country, property_title, guest, beds, bedrooms, bathrooms, night_rate, cleaning_fee, property_photos, single_room) VALUES (%s, %s, %s, %s,%s, %s, %s,%s, %s, %s,%s, %s, %s,%s, %s, %s)"
-                val2 = (final_property_id, today, datetime.now().strftime("%H:%M:%S"), final_property_type, city, state, country, final_title, guests, beds, bedrooms, baths, "", "", json.dumps(all_image_links), url)
+                sql2 = "INSERT INTO  tbl_airbnb_pricing (property_id, scrap_date, scrap_time, building_type, city, property_state, country, property_title, guest, beds, bedrooms, bathrooms, night_rate, cleaning_fee, property_photos, single_room) VALUES (%s, %s, %s, %s,%s, %s, %s,%s, %s, %s,%s, %s, %s,%s, %s, %s)"
+                val2 = (final_property_id, today, datetime.now().strftime("%H:%M:%S"), final_property_type, city, state, country, property_title, guests, beds, bedrooms, baths, "", "", json.dumps(all_image_links), url)
                 mycursor.execute(sql2, val2)
                 mydb.commit()
                 print("\nInsert successfully\n")
