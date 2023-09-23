@@ -304,7 +304,6 @@ def Scraper(url):
                 pass
             
             else:
-                url = "null"
                 sql2 = "INSERT INTO  tbl_airbnb_pricing (property_id, scrap_date, scrap_time, building_type, city, property_state, country, property_title, guest, beds, bedrooms, bathrooms, night_rate, cleaning_fee, property_photos, single_room) VALUES (%s, %s, %s, %s,%s, %s, %s,%s, %s, %s,%s, %s, %s,%s, %s, %s)"
                 val2 = (final_property_id, today, datetime.now().strftime("%H:%M:%S"), final_property_type, city, state, country, property_title, guests, beds, bedrooms, baths, "", "", json.dumps(all_image_links), url)
                 mycursor.execute(sql2, val2)
