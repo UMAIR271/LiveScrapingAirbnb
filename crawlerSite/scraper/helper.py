@@ -6,6 +6,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.service import Service
+
 proxies = [
     "216.173.109.24:6255",
     "38.170.176.60:5455",
@@ -148,3 +149,37 @@ def create_driver_with_proxy():
 
     print("No working proxies available after multiple attempts.")
     return None
+
+
+def savedataintodatabase(data):
+    # db_host = '34.23.87.242'
+    # db_port = '3306'
+    # db_name = 'cleanster-logs'
+    # db_user = 'airbnb_root'
+    # db_password = '7BQ+NLokL<L,x@+r'
+
+    # try:
+    #     mydb = mysql.connector.connect(
+    #         user = db_user,
+    #         password=db_password,
+    #         host= db_host,
+    #         port = db_port,
+    #         database=db_name
+    #     )  
+    # except:
+        
+    #     mydb = mysql.connector.connect(
+    #       host="127.0.0.1",
+    #       user="airbnb",
+    #       passwd="airbnb@airbnb",
+    #       database="airbnb"
+    #     )  
+
+
+    # mycursor = mydb.cursor()
+    # mycursor.execute('SET NAMES utf8mb4')
+    # mycursor.execute("SET CHARACTER SET utf8mb4")
+    # mycursor.execute("SET character_set_connection=utf8mb4")
+    print("data: {}".format(data))
+
+    

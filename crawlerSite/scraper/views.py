@@ -2,10 +2,13 @@ from django.http import HttpResponse
 from django.shortcuts import render
 from scraper.airbnb import Scraper
 from scraper.verbo import crawler
+# from scraper.test1 import Scraper
+# from scraper.tests import Scraper
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
+from .helper import *
 
 #this is django rest api 
 #this view file
@@ -19,8 +22,11 @@ class ScraperView(APIView):
         url = request.data.get('url')
         if "airbnb" in url:
             response = Scraper(url)
+            savedataintodatabase(response)
+            
             return Response({'data': response})
         elif "vrbo" in url:
+            print("vrbo")
             response = crawler(url)
             return Response({'data': response})
         else:

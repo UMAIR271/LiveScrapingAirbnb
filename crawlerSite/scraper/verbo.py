@@ -52,7 +52,7 @@ import json
 
 def crawler(url):
 
-    print("enter")
+    print("Verbo")
     print(url)
 
     proxy = get_random_proxy()
@@ -147,7 +147,9 @@ def crawler(url):
             #locations
             try:
                 print("location _try")
-                locations = driver.find_element(By.CSS_SELECTOR, "div.Description--location")
+                import pdb; pdb.set_trace()
+                locations = driver.find_element(By.CSS_SELECTOR, "div.uitk-layout-grid-item uitk-layout-grid-item-has-column-start")
+                print(locations)
                 locations_data=locations.text
                 print(locations.text)
                 words= locations_data.split(", ")
@@ -218,8 +220,12 @@ def crawler(url):
             time.sleep(3)
             
             print("============Title=======================")
+            # all_information_div = driver.find_element(By.CSS_SELECTOR, "div.uitk-layout-flex uitk-layout-flex-flex-direction-column uitk-spacing uitk-spacing-padding-large-inline-three uitk-spacing-padding-large-block-three")
+            # print("all_information_div",all_information_div.text)
             try:
-                title = driver.find_element(By.CSS_SELECTOR, "div.property-headline")
+                title = driver.find_element(By.XPATH, "//h1[@class='uitk-heading uitk-heading-3']")
+                hotel_rating = driver.find_element(By.XPATH, "//div[@itemprop='aggregateRating']//div[contains(@class, 'uitk-text-bold')]").text
+                print(hotel_rating)
                 if len(title.text) > 0:
                     scraped_data["property_title"]=title.text
                     final_title = title.text

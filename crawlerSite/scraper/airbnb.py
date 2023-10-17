@@ -11,44 +11,22 @@ import datetime
 from selenium.webdriver.chrome.options import Options
 import json
 from datetime import datetime
-from selenium import webdriver
 import mysql.connector
-from selenium import webdriver
 from selenium.webdriver.chrome.service import Service as ChromeService
 from selenium.webdriver.common.by import By
+from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
 from seleniumwire import webdriver as wiredriver
-
 from .helper import *
+
+
 db_host = '34.23.87.242'
 db_port = '3306'
 db_name = 'cleanster-logs'
 db_user = 'airbnb_root'
 db_password = '7BQ+NLokL<L,x@+r'
 
-try:
-    mydb = mysql.connector.connect(
-        user = db_user,
-        password=db_password,
-        host= db_host,
-        port = db_port,
-        database=db_name
-    )  
-except:
-       
-    mydb = mysql.connector.connect(
-      host="127.0.0.1",
-      user="airbnb",
-      passwd="airbnb@airbnb",
-      database="airbnb"
-    )  
-
-
-mycursor = mydb.cursor()
-mycursor.execute('SET NAMES utf8mb4')
-mycursor.execute("SET CHARACTER SET utf8mb4")
-mycursor.execute("SET character_set_connection=utf8mb4")
 
 
 
@@ -87,7 +65,7 @@ def Scraper(url):
             )
             print(driver)
             driver.get(url)
-            delay = 30 # seconds until timeout
+            delay = 60 # seconds until timeout
             
             # driver = webdriver.Chrome()
 
@@ -98,6 +76,18 @@ def Scraper(url):
             # Navigate to the target website 
             wait = WebDriverWait(driver, delay)
             doc_height = driver.execute_script("return Math.max( document.body.scrollHeight, document.body.offsetHeight, document.documentElement.clientHeight, document.documentElement.scrollHeight, document.documentElement.offsetHeight);")
+            try:
+                trannslte_button = driver.find_element(By.CSS_SELECTOR, "div._1piuevz")
+                if trannslte_button.is_enabled():
+                    print("Found trannslte_button. Clicking...")
+                    trannslte_button.click()
+                else:
+                    print("trannslte_button is not clickable.")
+            except NoSuchElementException as e:
+                print("Error: The trannslte_button element was not found -", e)
+            except Exception as e:
+                print("An error occurred while trying to click trannslte_button -", e)
+
 
             # Calculate the scroll distances for each part
             half_page_scroll = doc_height // 2
@@ -229,13 +219,16 @@ def Scraper(url):
                 except:
                     scraped_data["beds"] = "null"
                 
-                try:
-                    baths = driver.find_element(By.CSS_SELECTOR,'div._tqmy57 li:nth-child(4) span:nth-child(2)').text
-                    baths = int(baths.split()[0])
+                baths_element = driver.find_element(By.CSS_SELECTOR, 'div._tqmy57 li:nth-child(4) span:nth-child(2)')
+                baths_text = baths_element.text
+                baths = None
+                print('Baths:', baths_text)
+                if 'bath' in baths_text:
+                    baths = int(baths_text.split()[0])
                     scraped_data["baths"] = baths
                     print('Baths:', baths)
-                except:
-                    scraped_data["baths"] = "null"
+                else:
+                    scraped_data["baths"] = None
             except:
                     scraped_data["guests"] = "null"
                     scraped_data["bedrooms"] = "null"
@@ -246,15 +239,17 @@ def Scraper(url):
 
             #night_rate
             try:
-                night_price_element = driver.find_element(By.CSS_SELECTOR, 'div._ati8ih span._r1nvod:nth-child(2)')
+                night_price_element = driver.find_element(By.XPATH, "/html/body/div[5]/div/div/div[1]/div/div[2]/div/div/div/div[1]/main/div/div[1]/div[3]/div/div[2]/div/div/div[1]/div/div/div/div/div/div/div/div[3]/div/section/div[1]/div[1]/span[1]/div/button/div").text
+                #   driver.find_element(By.CSS_SELECTOR, 'div._ati8ih span._r1nvod:nth-child(2)')
                 if night_price_element:
-                    scraped_data["night_rate"] = night_price_element.text
+                    scraped_data["night_rate"] = night_price_element.split('x')[0].strip()
             except:
                 scraped_data["night_rate"] = "null"
 
             #cleaing
             try:
-                cleaning_fee = driver.find_element(By.CSS_SELECTOR, "div._1k4xcdh:nth-child(2)")
+                cleaning_fee = driver.find_element(By.XPATH, "/html/body/div[5]/div/div/div[1]/div/div[2]/div/div/div/div[1]/main/div/div[1]/div[3]/div/div[2]/div/div/div[1]/div/div/div/div/div/div/div/div[3]/div/section/div[1]/div[2]/span[2]").text
+                #driver.find_element(By.CSS_SELECTOR, "div._1k4xcdh:nth-child(2)")
                 scraped_data["cleaning_fee"] = cleaning_fee
             except:
                 scraped_data["cleaning_fee"] = "null"
@@ -266,19 +261,62 @@ def Scraper(url):
 
             #image_links
             try:
-                image_links = driver.find_elements(By.CSS_SELECTOR,'img._6tbg2q')
-                if len(image_links) > 0:
-                    
-                    for link in image_links:
-                        all_image_links.append(link.get_attribute('src'))
-                        print(link.get_attribute('src'))
-                    scraped_data["property_photos"] = all_image_links
-                    
-                else:
-                    scraped_data["property_photos"] = "null"
+                poster_image = driver.find_element(By.ID, "FMP-target").get_attribute('src')
+                img1 = driver.find_element(By.XPATH, "/html/body/div[5]/div/div/div[1]/div/div[2]/div/div/div/div[1]/main/div/div[1]/div[1]/div[2]/div/div/div/div/div/div[1]/div/div[1]/div/div[2]/div/div[1]/div/div/button/div/picture/img").get_attribute('src')
+                img2 = driver.find_element(By.XPATH, "/html/body/div[5]/div/div/div[1]/div/div[2]/div/div/div/div[1]/main/div/div[1]/div[1]/div[2]/div/div/div/div/div/div[1]/div/div[1]/div/div[2]/div/div[2]/div/div/button/div/picture/img").get_attribute('src')
+                img3 = driver.find_element(By.XPATH, "/html/body/div[5]/div/div/div[1]/div/div[2]/div/div/div/div[1]/main/div/div[1]/div[1]/div[2]/div/div/div/div/div/div[1]/div/div[1]/div/div[3]/div/div[1]/div/div/button/div/picture/img").get_attribute('src')
+                img4 = driver.find_element(By.XPATH, "/html/body/div[5]/div/div/div[1]/div/div[2]/div/div/div/div[1]/main/div/div[1]/div[1]/div[2]/div/div/div/div/div/div[1]/div/div[1]/div/div[3]/div/div[2]/div/div/button/div/picture/img").get_attribute('src')
+                
+                scraped_data["property_photos"] = [poster_image, img1, img2, img3, img4]
+                
+                # image_links = driver.find_elements(By.CSS_SELECTOR,'img._6tbg2q')
+                # if len(image_links) > 0:                    
+                #     for link in image_links:
+                #         all_image_links.append(link.get_attribute('src'))
+                #         print(link.get_attribute('src'))
+                #     scraped_data["property_photos"] = all_image_links                    
+                # else:
+                #    scraped_data["property_photos"] = "null"
                 
             except:
                 scraped_data["property_photos"] = "null"
+
+
+            # #night_rate
+            # try:
+            #     night_price_element = driver.find_element(By.CSS_SELECTOR, 'div._ati8ih span._r1nvod:nth-child(2)')
+            #     if night_price_element:
+            #         scraped_data["night_rate"] = night_price_element.text
+            # except:
+            #     scraped_data["night_rate"] = "null"
+
+            # #cleaing
+            # try:
+            #     cleaning_fee = driver.find_element(By.CSS_SELECTOR, "div._1k4xcdh:nth-child(2)")
+            #     scraped_data["cleaning_fee"] = cleaning_fee
+            # except:
+            #     scraped_data["cleaning_fee"] = "null"
+                
+
+            # currency   
+
+            scraped_data["currency"] = "USD"
+
+            # #image_links
+            # try:
+            #     image_links = driver.find_elements(By.CSS_SELECTOR,'img._6tbg2q')
+            #     if len(image_links) > 0:
+                    
+            #         for link in image_links:
+            #             all_image_links.append(link.get_attribute('src'))
+            #             print(link.get_attribute('src'))
+            #         scraped_data["property_photos"] = all_image_links
+                    
+            #     else:
+            #         scraped_data["property_photos"] = "null"
+                
+            # except:
+            #     scraped_data["property_photos"] = "null"
 
 
             #single_room
@@ -292,8 +330,31 @@ def Scraper(url):
             #source
             scraped_data["source"] = "airbnb"
             scraped_data["status"] = "1"
+            driver.quit()
+
+            time.sleep(20)
+            try:
+                mydb = mysql.connector.connect(
+                    user = db_user,
+                    password=db_password,
+                    host= db_host,
+                    port = db_port,
+                    database=db_name
+                )  
+            except:
+       
+                mydb = mysql.connector.connect(
+                host="127.0.0.1",
+                user="airbnb",
+                passwd="airbnb@airbnb",
+                database="airbnb"
+                )  
 
 
+            mycursor = mydb.cursor()
+            mycursor.execute('SET NAMES utf8mb4')
+            mycursor.execute("SET CHARACTER SET utf8mb4")
+            mycursor.execute("SET character_set_connection=utf8mb4")
             mycursor.execute("SELECT property_id FROM tbl_airbnb_pricing WHERE property_id = '" + final_property_id + "' AND  scrap_date = '" + str(today) + "'")
             myresult3 = mycursor.fetchall()      
             existingRowCount3 = len(myresult3)
@@ -304,6 +365,7 @@ def Scraper(url):
                 pass
             
             else:
+                url = "null"
                 sql2 = "INSERT INTO  tbl_airbnb_pricing (property_id, scrap_date, scrap_time, building_type, city, property_state, country, property_title, guest, beds, bedrooms, bathrooms, night_rate, cleaning_fee, property_photos, single_room) VALUES (%s, %s, %s, %s,%s, %s, %s,%s, %s, %s,%s, %s, %s,%s, %s, %s)"
                 val2 = (final_property_id, today, datetime.now().strftime("%H:%M:%S"), final_property_type, city, state, country, property_title, guests, beds, bedrooms, baths, "", "", json.dumps(all_image_links), url)
                 mycursor.execute(sql2, val2)
@@ -311,7 +373,6 @@ def Scraper(url):
                 print("\nInsert successfully\n")
             print(scraped_data)
             mydb.close()
-            driver.quit()
             return scraped_data
         except Exception as e:
             print(f"An error occurred: {e}")
